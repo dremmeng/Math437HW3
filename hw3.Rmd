@@ -1,0 +1,100 @@
+---
+title: 'MATH 437 HW3'
+author: "Drew Remmenga"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+##1.i. \
+$T^{2}(X,\mu) = 1(\bar{X}-\mu)^{T}s(X)(\bar{X} - \mu)$
+T squared
+##1.ii. \
+$\frac{n-1}{n} (\bar{X} - \mu)^{T} \hat\Sigma^{-1}(X) (\bar{X}-\mu)$
+##1.iii. \
+##1.iii.a. \
+$A\bar{X}+a$
+$A^{T}\Sigma (X)A$
+##1.iii.b. \
+$A^{T}S(X)A$
+$n (A\bar{X}+a - \mu_{y})^{T} A^{T}S^{-1}(X)A (A\bar{X}+a-\mu_{y})$
+##1.iii.c. \
+##2.\
+$(1-\alpha)*100\%$\
+$X \pm Z_{1-\alpha/2}* S/\sqrt{n}$\
+$X \pm K S / \sqrt{n}$\
+$K= Z_{1-\alpha/2}$\
+$\phi (k) = 1- \alpha/2$\
+$\alpha = 2 - 2 \phi (k)$\
+##3. \
+For n = 25 p = 3:
+$a^{T} X - 1.809 F^{\alpha}_{3,22} \frac{\sqrt{a^{T}\Sigma a}}{25} \leq a^{T} \mu \leq a^{T} X + 1.809 F^{\alpha}_{3,22} \frac{\sqrt{a^{T}\Sigma a}}{25}$\
+For n = 25 p = 2:
+$a^{T} X - 1.445 F^{\alpha}_{2,23} \frac{\sqrt{a^{T}\Sigma a}}{25} \leq a^{T} \mu \leq a^{T} X + 1.445 F^{\alpha}_{2,23} \frac{\sqrt{a^{T}\Sigma a}}{25}$\
+##4.a.\
+
+```{r}
+lizard <- read.csv("~/School/Math437/HW3/lizard.dat", sep="")
+xbar = c(mean(lizard$mass),mean(lizard$svl),mean(lizard$hls))
+xbar
+S=cov(lizard[-1])
+S
+```
+##b. \
+$n (\bar{X} - \mu)^{T} S^{-1}(X) (\bar{X}-\mu)$
+##c. \
+```{r}
+mu = c(10,70,140)
+t((xbar-(mu)))%*%solve(S)%*%(xbar-(mu))
+
+```
+##d. \
+```{r}
+library(DescTools)
+HotellingsT2Test(lizard[-1],mu=mu)
+```
+##e. \
+```{r}
+S= cov(lizard[,3:4])
+S
+```
+##f. \
+```{r}
+bivCI <- function(s, xbar, n, alpha, m)
+# returns m (x,y) coordinates of 1-alpha joint confidence ellipse of mean
+{
+x <- sin(2 * pi * (0 : (m - 1)) / (m - 1)) # m points on a unit circle
+y <- cos(2 * pi * (0 : (m - 1)) / (m - 1))
+cv <- qchisq(1 - alpha, 2) # chi-squared critical value
+cv <- cv / n # value of quadratic form
+for (i in 1 : m)
+{
+pair <- c(x[i], y[i]) # ith (x,y) pair
+q <- pair %*% solve(s,pair) # quadratic form
+x[i] <- x[i] * sqrt(cv / q) + xbar[1]
+y[i] <- y[i] * sqrt(cv / q) + xbar[2]
+}
+cbind(x, y)
+}
+
+
+biv = lizard[,3:4]
+plot(biv, col = "red", pch = 16, cex.lab = 1.5)
+lines(bivCI(s = var(biv), xbar = colMeans(biv), n = dim(biv)[1],alpha = .01,
+m = 1000),type = "l", col = "blue")
+lines(bivCI(s = var(biv), xbar = colMeans(biv), n = dim(biv)[1],alpha = .05,
+m = 1000),type = "l", col = "red", lwd = 1)
+# Add ‘‘+’’ sign
+lines(colMeans(biv)[1], colMeans(biv)[2], pch = 3, cex = .8,type = "p", lwd = 1)
+```
+##g. \
+```{r}
+
+conf=bivCI(s = var(biv), xbar = colMeans(biv), n = dim(biv)[1],alpha = .025,
+m = 1000)
+t.test(lizard[,3])
+t.test(lizard[,4])
+min(conf[,1])
+max(conf[,1])
+min(conf[,2])
+max(conf[,2])
+```
